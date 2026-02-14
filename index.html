@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>BB-Verify — ธนาคารเลือด รพ.ปทุมธานี</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#080c16;--bg2:#111827;--bg3:#1a2235;--r:#ef4444;--g:#22c55e;--b:#3b82f6;--am:#f59e0b;--cy:#06b6d4;--pk:#f472b6;--t1:#f1f5f9;--t2:#94a3b8;--t3:#475569;--bd:#1e293b}
+body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;min-height:100dvh}
+.app{max-width:500px;margin:0 auto;padding:8px}
+
+/* Header */
+.hdr{display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border:1px solid var(--bd);border-radius:10px;padding:8px 12px;margin-bottom:8px}
+.hdr-l{display:flex;align-items:center;gap:8px}
+.hdr-ico{width:30px;height:30px;background:linear-gradient(135deg,#dc2626,#991b1b);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px}
+.hdr-t{font-size:14px;font-weight:800}
+.hdr-s{font-size:8px;color:var(--t2)}
+.clock{font-size:10px;color:var(--cy);font-family:monospace;font-weight:600}
+
+/* Tabs */
+.tabs{display:flex;gap:2px;margin-bottom:8px;background:var(--bg2);border:1px solid var(--bd);border-radius:8px;padding:3px}
+.tab{flex:1;padding:8px 4px;border-radius:6px;text-align:center;cursor:pointer;font-size:11px;font-weight:700;color:var(--t3);border-bottom:2px solid transparent;transition:.2s}
+.tab.on{background:var(--bg3);color:var(--t1)}
+.tab.t1.on{border-bottom-color:var(--b)}
+.tab.t2.on{border-bottom-color:var(--pk)}
+.tab small{display:block;font-size:7px;font-weight:400;margin-top:1px}
+
+.panel{display:none}.panel.show{display:block}
+
+/* Steps */
+.steps{display:flex;align-items:center;gap:4px;margin-bottom:8px;padding:5px 8px;background:var(--bg2);border:1px solid var(--bd);border-radius:8px;justify-content:center;flex-wrap:wrap}
+.sp{padding:2px 8px;border-radius:10px;font-size:8px;font-weight:700;border:2px solid var(--bd);color:var(--t3);white-space:nowrap;transition:.3s}
+.sp.act{border-color:var(--b);color:var(--b);background:rgba(59,130,246,.1)}
+.sp.ok{border-color:var(--g);color:var(--g);background:rgba(34,197,94,.1)}
+.sa{color:var(--t3);font-size:10px}
+
+/* Camera */
+.cam{background:var(--bg2);border:1px solid var(--bd);border-radius:10px;overflow:hidden;margin-bottom:8px}
+.cam-top{padding:6px 10px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--bd);font-size:11px}
+.cam-st{font-size:9px;font-weight:600;padding:1px 6px;border-radius:8px}
+.cam-st.off{background:rgba(71,85,105,.2);color:var(--t3)}
+.cam-st.on{background:rgba(34,197,94,.15);color:var(--g)}
+.cam-st.scan{background:rgba(245,158,11,.15);color:var(--am);animation:bk 1s infinite}
+@keyframes bk{50%{opacity:.4}}
+.cam-tgt{font-size:9px;color:var(--am);font-weight:600}
+.cam-view{background:#000;min-height:220px;position:relative;display:flex;align-items:center;justify-content:center}
+.cam-view video{width:100%;max-height:300px;object-fit:cover;display:none}
+.cam-ph{color:var(--t3);text-align:center;padding:30px}
+.cam-ph b{font-size:36px;display:block;opacity:.3;margin-bottom:6px}
+.cam-guide{position:absolute;inset:0;pointer-events:none;display:none}
+.cam-guide.show{display:block}
+.cam-guide i{position:absolute;top:10%;left:6%;right:6%;bottom:10%;border:2px dashed rgba(59,130,246,.5);border-radius:8px}
+.cam-guide span{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.75);color:#fff;padding:2px 10px;border-radius:4px;font-size:9px;font-weight:600;white-space:nowrap}
+.cam-load{height:3px;background:var(--bd);overflow:hidden;display:none}
+.cam-load.show{display:block}
+.cam-load div{height:100%;background:linear-gradient(90deg,var(--am),var(--cy));animation:ld 1.2s ease infinite}
+@keyframes ld{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}
+.cam-ctrl{padding:8px;display:flex;gap:6px;justify-content:center;border-top:1px solid var(--bd);flex-wrap:wrap}
+
+/* Buttons */
+.btn{padding:7px 16px;border-radius:7px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid;display:inline-flex;align-items:center;gap:4px;transition:.15s;-webkit-user-select:none;user-select:none}
+.btn:active{transform:scale(.95)}
+.btn:disabled{opacity:.35!important;cursor:not-allowed;transform:none!important}
+.btn-b{background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.35);color:var(--b)}
+.btn-g{background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.35);color:var(--g)}
+.btn-r{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:var(--r)}
+.btn-a{background:rgba(245,158,11,.1);border-color:rgba(245,158,11,.3);color:var(--am)}
+.btn-scan{padding:11px 30px;border-radius:9px;font-size:15px;font-weight:800;cursor:pointer;border:2px solid rgba(59,130,246,.5);background:linear-gradient(135deg,rgba(59,130,246,.2),rgba(6,182,212,.2));color:var(--cy);letter-spacing:.5px}
+.btn-scan:active{transform:scale(.95)}
+
+/* OCR Cards */
+.ocr-g{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+.ocr-c{background:var(--bg2);border:2px solid var(--bd);border-radius:8px;padding:10px;transition:.3s}
+.ocr-c.act{border-color:var(--b);box-shadow:0 0 8px rgba(59,130,246,.1)}
+.ocr-c.ok{border-color:var(--g)}
+.ocr-c h4{font-size:9px;color:var(--t2);margin-bottom:3px;font-weight:600}
+.ocr-hn{font-family:monospace;font-size:14px;font-weight:700;color:var(--cy)}
+.ocr-nm{font-size:11px;font-weight:600;margin-top:1px}
+.ocr-no{color:var(--t3);font-size:9px;font-style:italic}
+
+/* Result */
+.res{border-radius:10px;padding:14px;text-align:center;border:2px solid var(--bd);background:var(--bg2);margin-bottom:8px;transition:.4s}
+.res.match{border-color:var(--g);background:rgba(34,197,94,.06);box-shadow:0 0 25px rgba(34,197,94,.15)}
+.res.mis{border-color:var(--r);background:rgba(239,68,68,.06);box-shadow:0 0 25px rgba(239,68,68,.15);animation:shk .5s}
+@keyframes shk{20%{transform:translateX(-5px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+.res-i{font-size:30px;margin-bottom:2px}
+.res-t{font-size:17px;font-weight:800}
+.res-d{font-size:9px;color:var(--t2);margin-top:2px}
+.res-cmp{font-family:monospace;font-size:10px;margin-top:6px;padding:5px 8px;background:rgba(0,0,0,.2);border-radius:5px;display:inline-block;text-align:left;line-height:1.7}
+.res-w{opacity:.4}
+.res-w .res-i{font-size:22px}
+.res-w .res-t{font-size:11px;color:var(--t3);font-weight:600}
+.res-act{display:flex;gap:6px;margin-top:8px;justify-content:center;flex-wrap:wrap}
+
+/* Log */
+.log{background:var(--bg2);border:1px solid var(--bd);border-radius:8px;padding:8px}
+.log-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.log-h b{font-size:10px}
+.log-ls{max-height:120px;overflow-y:auto}
+.log-i{display:grid;grid-template-columns:50px 26px 1fr 28px;gap:3px;padding:2px 3px;font-size:8px;align-items:center}
+.log-i+.log-i{border-top:1px solid rgba(30,41,59,.2)}
+.log-no{text-align:center;padding:10px;color:var(--t3);font-size:9px}
+.hint{text-align:center;margin-top:6px;font-size:8px;color:var(--t3)}
+
+canvas{display:none!important}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+<!-- Header -->
+<div class="hdr">
+<div class="hdr-l">
+<div class="hdr-ico">🩸</div>
+<div><div class="hdr-t">BB-Verify</div><div class="hdr-s">ธนาคารเลือด รพ.ปทุมธานี อาคาร 18 ชั้น 3</div></div>
+</div>
+<span class="clock" id="clock">--:--:--</span>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+<div class="tab t1 on" onclick="swTab(1)" id="tab1">📋🧪 ขั้น 1 — ตรวจรับ<small>ใบรีเควส ↔ Sticker หลอด</small></div>
+<div class="tab t2" onclick="swTab(2)" id="tab2">🧪🏷️ ขั้น 2 — ก่อนทำงาน<small>Sticker ตึก ↔ GEMS</small></div>
+</div>
+
+<!-- ===== PANEL 1 ===== -->
+<div class="panel show" id="p1">
+<div class="steps"><span class="sp act" id="s1a">① ใบรีเควส</span><span class="sa">→</span><span class="sp" id="s1b">② Sticker หลอด</span><span class="sa">→</span><span class="sp" id="s1c">③ ผลลัพธ์</span></div>
+<div class="cam">
+<div class="cam-top"><span style="font-weight:700">📷 <span class="cam-st off" id="cs1">ปิดอยู่</span></span><span class="cam-tgt" id="ct1">จ่อที่: ใบรีเควส</span></div>
+<div class="cam-view"><video id="v1" autoplay playsinline></video><canvas id="c1"></canvas><div class="cam-ph" id="ph1"><b>📷</b>กดปุ่ม "เปิดกล้อง"</div><div class="cam-guide" id="g1"><i></i><span>จ่อให้เห็น HN+ชื่อชัดเจน</span></div></div>
+<div class="cam-load" id="ld1"><div></div></div>
+<div class="cam-ctrl"><button class="btn btn-b" id="ob1" onclick="openCam(1)">📷 เปิดกล้อง</button><button class="btn-scan" id="sb1" onclick="doScan(1)" disabled>🔍 สแกน</button><button class="btn btn-r" id="cb1" onclick="closeCam(1)" style="display:none">⏹ ปิด</button></div>
+</div>
+<div class="ocr-g"><div class="ocr-c act" id="oc1a"><h4>📋 ใบรีเควส</h4><div id="od1a"><span class="ocr-no">ยังไม่ได้สแกน</span></div></div><div class="ocr-c" id="oc1b"><h4>🧪 Sticker หลอด</h4><div id="od1b"><span class="ocr-no">ยังไม่ได้สแกน</span></div></div></div>
+<div class="res" id="r1"><div class="res-w"><div class="res-i">📋</div><div class="res-t">เปิดกล้อง → จ่อใบรีเควส → กดสแกน</div></div></div>
+</div>
+
+<!-- ===== PANEL 2 ===== -->
+<div class="panel" id="p2">
+<div class="steps"><span class="sp act" id="s2a">① Sticker ตึก</span><span class="sa">→</span><span class="sp" id="s2b">② Sticker GEMS</span><span class="sa">→</span><span class="sp" id="s2c">③ ผลลัพธ์</span></div>
+<div class="cam">
+<div class="cam-top"><span style="font-weight:700">📷 <span class="cam-st off" id="cs2">ปิดอยู่</span></span><span class="cam-tgt" id="ct2">จ่อที่: Sticker ตึก</span></div>
+<div class="cam-view"><video id="v2" autoplay playsinline></video><canvas id="c2"></canvas><div class="cam-ph" id="ph2"><b>📷</b>กดปุ่ม "เปิดกล้อง"</div><div class="cam-guide" id="g2"><i></i><span>จ่อให้เห็น HN+ชื่อชัดเจน</span></div></div>
+<div class="cam-load" id="ld2"><div></div></div>
+<div class="cam-ctrl"><button class="btn btn-b" id="ob2" onclick="openCam(2)">📷 เปิดกล้อง</button><button class="btn-scan" id="sb2" onclick="doScan(2)" disabled>🔍 สแกน</button><button class="btn btn-r" id="cb2" onclick="closeCam(2)" style="display:none">⏹ ปิด</button></div>
+</div>
+<div class="ocr-g"><div class="ocr-c act" id="oc2a"><h4>🧪 Sticker ตึก</h4><div id="od2a"><span class="ocr-no">ยังไม่ได้สแกน</span></div></div><div class="ocr-c" id="oc2b"><h4>🏷️ Sticker GEMS</h4><div id="od2b"><span class="ocr-no">ยังไม่ได้สแกน</span></div></div></div>
+<div class="res" id="r2"><div class="res-w"><div class="res-i">🧪</div><div class="res-t">เปิดกล้อง → จ่อ Sticker ตึก → กดสแกน</div></div></div>
+</div>
+
+<!-- Log -->
+<div class="log">
+<div class="log-h"><b>📝 ประวัติ (<span id="lc">0</span>)</b><div><button class="btn btn-b" style="padding:2px 6px;font-size:8px" onclick="expCSV()">📥</button> <button class="btn btn-r" style="padding:2px 6px;font-size:8px" onclick="clrLog()">🗑️</button></div></div>
+<div class="log-ls" id="ll"><div class="log-no">ยังไม่มีประวัติ</div></div>
+</div>
+<div class="hint">💡 เปิดกล้อง → จ่อ sticker ให้ชัด → กดสแกน → AI อ่านอัตโนมัติ</div>
+
+<!-- Loading indicator for Tesseract -->
+<div id="tload" style="display:none;position:fixed;top:0;left:0;right:0;background:var(--am);color:#000;text-align:center;padding:4px;font-size:10px;font-weight:700;z-index:999">⏳ กำลังโหลด OCR Engine ครั้งแรก...</div>
+</div>
+
+<!-- Tesseract.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+<script>
+// ============================================================
+// BB-Verify — Blood Bank Verification System
+// ธนาคารเลือด รพ.ปทุมธานี
+// Tesseract.js OCR + Live Camera
+// ============================================================
+
+// --- Audio ---
+let ac;
+function bip(f,d,t){try{if(!ac)ac=new(window.AudioContext||window.webkitAudioContext);const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);o.type=t||'sine';o.frequency.value=f;g.gain.setValueAtTime(.3,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+d);o.start();o.stop(ac.currentTime+d)}catch(e){}}
+function sOk(){bip(880,.12);setTimeout(()=>bip(1100,.12),120);setTimeout(()=>bip(1320,.2),240)}
+function sNg(){bip(300,.25,'square');setTimeout(()=>bip(200,.4,'square'),250)}
+
+// --- Clock ---
+setInterval(()=>{document.getElementById('clock').textContent=new Date().toLocaleTimeString('th-TH',{hour12:false})},1000);
+
+// --- State ---
+let curTab=1, scanning=false;
+const ST={1:{step:1,d1:{},d2:{}},2:{step:1,d1:{},d2:{}}};
+const streams={};
+let worker=null;
+
+// --- Init Tesseract Worker ---
+async function initWorker(){
+  if(worker) return worker;
+  document.getElementById('tload').style.display='block';
+  try{
+    worker = await Tesseract.createWorker('tha+eng',1,{
+      logger:m=>{}
+    });
+    document.getElementById('tload').style.display='none';
+    return worker;
+  }catch(e){
+    document.getElementById('tload').textContent='❌ โหลด OCR ไม่สำเร็จ: '+e.message;
+    throw e;
+  }
+}
+
+// Pre-load worker on page load
+window.addEventListener('load',()=>{setTimeout(initWorker,1000)});
+
+// --- Tab ---
+function swTab(n){
+  closeCam(curTab);
+  curTab=n;
+  document.getElementById('tab1').className='tab t1'+(n===1?' on':'');
+  document.getElementById('tab2').className='tab t2'+(n===2?' on':'');
+  document.getElementById('p1').className='panel'+(n===1?' show':'');
+  document.getElementById('p2').className='panel'+(n===2?' show':'');
+}
+
+// --- Camera ---
+async function openCam(p){
+  try{
+    const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1920},height:{ideal:1080}}});
+    streams[p]=s;
+    const v=document.getElementById('v'+p);
+    v.srcObject=s;v.style.display='block';
+    document.getElementById('ph'+p).style.display='none';
+    document.getElementById('g'+p).classList.add('show');
+    document.getElementById('cs'+p).className='cam-st on';document.getElementById('cs'+p).textContent='🟢 เปิดอยู่';
+    document.getElementById('sb'+p).disabled=false;
+    document.getElementById('ob'+p).style.display='none';
+    document.getElementById('cb'+p).style.display='';
+  }catch(e){alert('เปิดกล้องไม่ได้: '+e.message+'\n\nต้องเปิดผ่าน HTTPS (GitHub Pages)')}
+}
+
+function closeCam(p){
+  if(streams[p]){streams[p].getTracks().forEach(t=>t.stop());delete streams[p]}
+  const v=document.getElementById('v'+p);
+  if(v){v.srcObject=null;v.style.display='none'}
+  const ph=document.getElementById('ph'+p);if(ph)ph.style.display='';
+  const g=document.getElementById('g'+p);if(g)g.classList.remove('show');
+  const cs=document.getElementById('cs'+p);if(cs){cs.className='cam-st off';cs.textContent='ปิดอยู่'}
+  const sb=document.getElementById('sb'+p);if(sb)sb.disabled=true;
+  const ob=document.getElementById('ob'+p);if(ob)ob.style.display='';
+  const cb=document.getElementById('cb'+p);if(cb)cb.style.display='none';
+}
+
+// --- Scan ---
+async function doScan(p){
+  if(scanning)return;
+  scanning=true;
+  bip(660,.06);
+  
+  const v=document.getElementById('v'+p);
+  const c=document.getElementById('c'+p);
+  c.width=v.videoWidth;c.height=v.videoHeight;
+  c.getContext('2d').drawImage(v,0,0);
+  const url=c.toDataURL('image/jpeg',.88);
+
+  // UI
+  const sb=document.getElementById('sb'+p);
+  sb.disabled=true;sb.textContent='⏳ กำลังอ่าน...';
+  document.getElementById('ld'+p).classList.add('show');
+  document.getElementById('cs'+p).className='cam-st scan';
+  document.getElementById('cs'+p).textContent='กำลังสแกน...';
+
+  try{
+    const w=await initWorker();
+    const res=await w.recognize(url);
+    const text=res.data.text;
+    const info=extract(text);
+    
+    const st=ST[p];
+    const sn=st.step;
+
+    if(sn===1){
+      st.d1=info;
+      st.step=2;
+      updCard(p,'a',info);
+      updSteps(p,2);
+      updTarget(p);
+      const re=document.getElementById('r'+p);
+      re.className='res';
+      re.innerHTML='<div class="res-w"><div class="res-i">🔍</div><div class="res-t">จ่อที่ '+(p===1?'Sticker หลอด':'Sticker GEMS')+' แล้วกดสแกน</div></div>';
+    }else{
+      st.d2=info;
+      updCard(p,'b',info);
+      updSteps(p,3);
+      doCompare(p);
+    }
+  }catch(e){
+    alert('OCR Error: '+e.message);
+  }finally{
+    sb.disabled=false;sb.textContent='🔍 สแกน';
+    document.getElementById('ld'+p).classList.remove('show');
+    if(streams[p]){
+      document.getElementById('cs'+p).className='cam-st on';
+      document.getElementById('cs'+p).textContent='🟢 เปิดอยู่';
+    }
+    scanning=false;
+  }
+}
+
+// --- Extract HN + Name ---
+function extract(text){
+  let hn='',name='';
+  const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
+  for(const l of lines){
+    if(!hn){const m=l.match(/[Hh][Nn]\s*[:.\-=\s]\s*(\d{6,10})/);if(m)hn=m[1]}
+    if(!hn){const m=l.match(/\b(000\d{5,7})\b/);if(m)hn=m[1]}
+    if(!name){const m=l.match(/(นาย|นาง(?:สาว)?|น\.ส\.|เด็กชาย|เด็กหญิง|ด\.ช\.|ด\.ญ\.)\s*(.+)/);if(m)name=(m[1]+' '+m[2]).replace(/\s{2,}/g,' ').replace(/[|\\\/\[\]{}()\d]/g,'').trim()}
+  }
+  if(!hn){const m=text.match(/000\d{5,7}/g);if(m)hn=m[0]}
+  return{hn,name,raw:text};
+}
+
+// --- UI Updates ---
+function updCard(p,ab,info){
+  const el=document.getElementById('oc'+p+ab);
+  const od=document.getElementById('od'+p+ab);
+  el.classList.remove('act');el.classList.add('ok');
+  od.innerHTML=(info.hn?'<div class="ocr-hn">HN: '+info.hn+'</div>':'<div class="ocr-hn" style="color:var(--am)">⚠️ ไม่พบ HN</div>')
+    +'<div class="ocr-nm">'+(info.name||'ไม่พบชื่อ')+'</div>';
+  // Activate next
+  if(ab==='a'){
+    document.getElementById('oc'+p+'b').classList.add('act');
+  }
+}
+
+function updSteps(p,n){
+  const ids=['a','b','c'];
+  ids.forEach((id,i)=>{
+    const el=document.getElementById('s'+p+id);
+    el.classList.remove('act','ok');
+    if(i+1<n)el.classList.add('ok');
+    else if(i+1===n)el.classList.add('act');
+  });
+}
+
+function updTarget(p){
+  const tgts={1:['ใบรีเควส','Sticker หลอด'],2:['Sticker ตึก','Sticker GEMS']};
+  const st=ST[p];
+  document.getElementById('ct'+p).textContent='จ่อที่: '+tgts[p][st.step-1];
+}
+
+// --- Compare ---
+function doCompare(p){
+  const st=ST[p];
+  const a=st.d1,b=st.d2;
+  let hnOk=false,nmOk=false;
+  if(a.hn&&b.hn)hnOk=normHN(a.hn)===normHN(b.hn);
+  if(a.name&&b.name)nmOk=fuzzy(a.name,b.name);
+  const ok=hnOk||((!a.hn||!b.hn)&&nmOk)||(hnOk&&(!a.name||!b.name));
+
+  const re=document.getElementById('r'+p);
+  const L={1:{ok:'นำส่งงานธนาคารเลือดได้',ng:'ปฏิเสธสิ่งส่งตรวจ'},2:{ok:'ทำงานต่อได้เลย',ng:'ห้ามดำเนินการต่อ'}};
+
+  if(ok){
+    sOk();
+    re.className='res match';
+    re.innerHTML='<div class="res-i">✅</div><div class="res-t" style="color:var(--g)">ตรงกัน — MATCH</div>'
+      +'<div class="res-d">'+L[p].ok+'</div>'
+      +'<div class="res-cmp">HN: <span style="color:var(--cy)">'+(a.hn||'?')+'</span> = <span style="color:var(--cy)">'+(b.hn||'?')+'</span><br>ชื่อ: <span style="color:var(--g)">'+(a.name||'—')+'</span></div>'
+      +'<div class="res-act"><button class="btn btn-g" onclick="resetP('+p+')">✅ สแกนคู่ถัดไป</button></div>';
+  }else{
+    sNg();
+    re.className='res mis';
+    re.innerHTML='<div class="res-i">❌</div><div class="res-t" style="color:var(--r)">ไม่ตรง — MISMATCH</div>'
+      +'<div class="res-d">⚠️ '+L[p].ng+'</div>'
+      +'<div class="res-cmp">HN: <span style="color:var(--r)">'+(a.hn||'?')+'</span> ≠ <span style="color:var(--r)">'+(b.hn||'?')+'</span><br>①: '+(a.name||'?')+'<br>②: '+(b.name||'?')+'</div>'
+      +'<div class="res-act"><button class="btn btn-a" onclick="retry2('+p+')">🔄 สแกน Step 2 ใหม่</button> <button class="btn btn-r" onclick="resetP('+p+')">✖ เริ่มใหม่</button></div>';
+  }
+  closeCam(p);
+  addLog(p,a.hn||'?',b.hn||'?',a.name||'',ok?'MATCH':'MISMATCH');
+}
+
+function normHN(v){return v.replace(/^0+/,'')}
+function fuzzy(a,b){
+  const cl=s=>s.replace(/(นาย|นาง(?:สาว)?|น\.ส\.|เด็กชาย|เด็กหญิง|ด\.ช\.|ด\.ญ\.)/g,'').trim();
+  const ca=cl(a),cb=cl(b);
+  if(!ca||!cb)return false;
+  if(ca===cb)return true;
+  const wa=ca.split(/\s+/).filter(w=>w.length>1);
+  const wb=cb.split(/\s+/).filter(w=>w.length>1);
+  if(!wa.length||!wb.length)return false;
+  return wa[0]===wb[0]||wa.some(w=>wb.includes(w));
+}
+
+// --- Reset ---
+function resetP(p){
+  ST[p]={step:1,d1:{},d2:{}};
+  updSteps(p,1);
+  const tgts={1:'ใบรีเควส',2:'Sticker ตึก'};
+  document.getElementById('ct'+p).textContent='จ่อที่: '+tgts[p];
+  ['a','b'].forEach(ab=>{
+    const el=document.getElementById('oc'+p+ab);
+    el.classList.remove('ok','act');
+    if(ab==='a')el.classList.add('act');
+    document.getElementById('od'+p+ab).innerHTML='<span class="ocr-no">ยังไม่ได้สแกน</span>';
+  });
+  const re=document.getElementById('r'+p);
+  re.className='res';
+  const ico=p===1?'📋':'🧪';
+  re.innerHTML='<div class="res-w"><div class="res-i">'+ico+'</div><div class="res-t">เปิดกล้อง → จ่อ '+tgts[p]+' → กดสแกน</div></div>';
+  openCam(p);
+}
+
+function retry2(p){
+  ST[p].step=2;ST[p].d2={};
+  updSteps(p,2);
+  const tgts={1:'Sticker หลอด',2:'Sticker GEMS'};
+  document.getElementById('ct'+p).textContent='จ่อที่: '+tgts[p];
+  const eb=document.getElementById('oc'+p+'b');
+  eb.classList.remove('ok');eb.classList.add('act');
+  document.getElementById('od'+p+'b').innerHTML='<span class="ocr-no">ยังไม่ได้สแกน</span>';
+  const re=document.getElementById('r'+p);
+  re.className='res';
+  re.innerHTML='<div class="res-w"><div class="res-i">🔄</div><div class="res-t">สแกน '+tgts[p]+' ใหม่</div></div>';
+  openCam(p);
+}
+
+// --- Log ---
+let logs=[];
+function addLog(tab,h1,h2,nm,r){
+  const t=new Date().toLocaleTimeString('th-TH',{hour12:false});
+  const d=new Date().toLocaleDateString('th-TH');
+  logs.unshift({t,d,tab,h1,h2,nm,r});
+  rnLog();
+}
+function rnLog(){
+  const el=document.getElementById('ll');
+  document.getElementById('lc').textContent=logs.length;
+  if(!logs.length){el.innerHTML='<div class="log-no">ยังไม่มีประวัติ</div>';return}
+  el.innerHTML=logs.map(l=>'<div class="log-i"><span style="font-family:monospace;font-size:7px;color:var(--t2)">'+l.t+'</span><span style="font-size:7px;font-weight:700;padding:0 2px;border-radius:2px;background:'+(l.tab===1?'rgba(59,130,246,.1);color:var(--b)':'rgba(244,114,182,.1);color:var(--pk)')+'">ขั้น'+l.tab+'</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><span style="font-family:monospace;color:var(--cy);font-size:7px">'+l.h1+'</span>↔<span style="font-family:monospace;color:var(--cy);font-size:7px">'+l.h2+'</span></span><span style="font-size:7px;font-weight:700;text-align:center;color:'+(l.r==='MATCH'?'var(--g)':'var(--r)')+'">'+(l.r==='MATCH'?'✅':'❌')+'</span></div>').join('');
+}
+function clrLog(){if(confirm('ล้างประวัติ?')){logs=[];rnLog()}}
+function expCSV(){
+  if(!logs.length)return;
+  let c='\uFEFFวันที่,เวลา,ขั้นตอน,HN1,HN2,ชื่อ,ผล\n';
+  logs.forEach(l=>{c+=l.d+','+l.t+',ขั้น'+l.tab+','+l.h1+','+l.h2+',"'+l.nm+'",'+l.r+'\n'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([c],{type:'text/csv'}));
+  a.download='BBVerify_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+}
+</script>
+</body>
+</html>
